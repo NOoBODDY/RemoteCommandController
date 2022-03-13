@@ -44,7 +44,7 @@ namespace ControlService.Core
             RestRequest request = new RestRequest(url, Method.Get);
             request.AddParameter("guid", Guid);
             var resonse = await _client.GetAsync(request);
-            List <Command> commands = JsonSerializer.Deserialize<List<Command>>(resonse.Content);
+            List <Command> commands = JsonSerializer.Deserialize<Command[]>(resonse.Content).ToList();
 
             return commands;
         }

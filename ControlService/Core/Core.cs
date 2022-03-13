@@ -1,24 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 using ControlService.ExternalModules;
 using ControlService.Models;
 using ControlService.Core.Models;
 
+
 namespace ControlService.Core
 {
-    internal class Core : BackgroundService
+    public class Core : BackgroundService
     {
         private readonly ILogger<Core> _logger;
         Dictionary<string, IExternalModule> Modules;
+        List<string> ModulesToInclude;
         static string settingsPath = "settings";
         Api _api;
 
-        internal Core(ILogger<Core> logger)
+        public Core(ILogger<Core> logger)
         {
             _logger = logger;
+        }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
             FileManager<SettingsModel> manager = new FileManager<SettingsModel>(settingsPath);
             SettingsModel settings = manager.ReadFromFile("settings.json");
             if (settings == null)
@@ -26,17 +32,15 @@ namespace ControlService.Core
                 settings = new SettingsModel();
                 manager.CreateFile("settings.json", settings);
             }
-            Modules = settings.ExternalModules;
+            ModulesToInclude = settings.ExternalModules;
+            foreach (string module in ModulesToInclude)
+            {
+                IncludeModule(module);
+            }
             _api = new Api(settings.Guid);
-            settings.Guid = _api.Guid;
-            manager.CreateFile("settings.json", settings);
+            SaveSettings();
 
-            //TimerCallback tm = new TimerCallback(CommandsProcessing);
-            //Timer timer = new Timer(tm, null, 0, 30000);
-        }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
             while (!stoppingToken.IsCancellationRequested)
             {
 
@@ -53,7 +57,6 @@ namespace ControlService.Core
 
         void CommandsProcessing()
         {
-            //_logger.LogInformation("Timer tick", DateTimeOffset.Now);
             Task<List<Command>> task = _api.GetCommands();
             task.Wait();
             List<Command> commands = task.Result;
@@ -82,20 +85,27 @@ namespace ControlService.Core
                 case "stopmodule":
                     StopModule(commandlets[1], commandlets.Skip(2).ToArray());
                     break;
+                case "includemodule":
+                    IncludeModule(commandlets[1]);
+                    break;
                 default:
-                    IExternalModule module = Modules.FirstOrDefault(u => u.Key == commandlets[0]).Value;
-                    if (module != null)
+                    if (Modules != null && Modules.Count != 0)
                     {
-                        lock(module.CommandsPull)
+                        IExternalModule module = Modules.FirstOrDefault(u => u.Key == commandlets[0]).Value;
+                        if (module != null)
                         {
-                            module.CommandsPull.Enqueue(command.CommandText.Skip(commandlets[0].Length + 1).ToString());
+                            lock (module.CommandsPull)
+                            {
+                                module.CommandsPull.Enqueue(command.CommandText.Skip(commandlets[0].Length + 1).ToString());
+                            }
+                            _logger.LogInformation($"Command added to module {module.Name}.", DateTimeOffset.Now);
                         }
-                        _logger.LogInformation($"Command added to module {module.Name}.", DateTimeOffset.Now);
+                        else
+                        {
+                            _logger.LogInformation($"module {module.Name} not found. Command doesnt invoke", DateTimeOffset.Now);
+                        }
                     }
-                    else
-                    {
-                        _logger.LogInformation($"module {module.Name} not found. Command doesnt invoke", DateTimeOffset.Now);
-                    }
+                    _logger.LogInformation($"module or command not found", DateTimeOffset.Now);
 
                     break;
             }
@@ -127,6 +137,44 @@ namespace ControlService.Core
                 _logger.LogInformation($"module {moduleName} not found", DateTimeOffset.Now);
             }
             
+        }
+        void IncludeModule(string moduleName)
+        {
+            if (Modules == null)
+            {
+                Modules = new Dictionary<string, IExternalModule>();
+            }
+            if (Modules.ContainsKey(moduleName))
+            {
+                _logger.LogInformation($"cant load {moduleName}. It is already loaded", DateTimeOffset.Now);
+            }
+            else
+            {
+                try
+                {
+                    Assembly asm = Assembly.LoadFrom("External/" + moduleName + ".dll");
+                    Type? t = asm.GetType($"{moduleName}.{moduleName}");
+                    object? obj = Activator.CreateInstance(t);
+                    Modules[moduleName] = (IExternalModule)obj;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInformation($"cant load {moduleName}", DateTimeOffset.Now);
+                    _logger.LogError(ex.Message, DateTimeOffset.Now);
+                }
+            }
+            
+
+
+        }
+
+        void SaveSettings()
+        {
+            FileManager<SettingsModel> manager = new FileManager<SettingsModel>(settingsPath);
+            SettingsModel settings = new SettingsModel();
+            settings.Guid = _api.Guid;
+            settings.ExternalModules = Modules.Keys.ToList();
+            manager.CreateFile("settings.json", settings);
         }
 
     }

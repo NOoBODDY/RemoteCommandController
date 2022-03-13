@@ -10,6 +10,6 @@ namespace ControlService.Core.Models
     internal class SettingsModel
     {
         public string Guid { get; set; }
-        public Dictionary<string, IExternalModule> ExternalModules { get; set; }
+        public List<string> ExternalModules { get; set; }
     }
 }
