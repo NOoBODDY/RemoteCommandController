@@ -11,6 +11,7 @@ namespace ControlService.ExternalModules
         Ok,
         BadArguments,
         WaitingToStop,
+        Disposable,
         UndefinedError
     }
 }

@@ -33,10 +33,14 @@ namespace ControlService.Core
                 manager.CreateFile("settings.json", settings);
             }
             ModulesToInclude = settings.ExternalModules;
-            foreach (string module in ModulesToInclude)
+            if (ModulesToInclude != null)
             {
-                IncludeModule(module);
+                foreach (string module in ModulesToInclude)
+                {
+                    IncludeModule(module);
+                }
             }
+            
             _api = new Api(settings.Guid);
             SaveSettings();
 
@@ -87,6 +91,7 @@ namespace ControlService.Core
                     break;
                 case "includemodule":
                     IncludeModule(commandlets[1]);
+                    SaveSettings();
                     break;
                 default:
                     if (Modules != null && Modules.Count != 0)
@@ -155,7 +160,7 @@ namespace ControlService.Core
                     Assembly asm = Assembly.LoadFrom("External/" + moduleName + ".dll");
                     Type? t = asm.GetType($"{moduleName}.{moduleName}");
                     object? obj = Activator.CreateInstance(t);
-                    Modules[moduleName] = (IExternalModule)obj;
+                    Modules.Add(moduleName, (IExternalModule)obj ) ;
                 }
                 catch (Exception ex)
                 {
@@ -172,8 +177,8 @@ namespace ControlService.Core
         {
             FileManager<SettingsModel> manager = new FileManager<SettingsModel>(settingsPath);
             SettingsModel settings = new SettingsModel();
-            settings.Guid = _api.Guid;
-            settings.ExternalModules = Modules.Keys.ToList();
+            settings.Guid = _api?.Guid;
+            settings.ExternalModules = Modules?.Keys.ToList();
             manager.CreateFile("settings.json", settings);
         }
 
