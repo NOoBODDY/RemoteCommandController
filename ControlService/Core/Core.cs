@@ -17,6 +17,7 @@ namespace ControlService.Core
         List<string> ModulesToInclude;
         static string settingsPath = "settings";
         Api _api;
+        int _delay;
 
         public Core(ILogger<Core> logger)
         {
@@ -33,6 +34,7 @@ namespace ControlService.Core
                 manager.CreateFile("settings.json", settings);
             }
             ModulesToInclude = settings.ExternalModules;
+            _delay = settings.Delay;
             if (ModulesToInclude != null)
             {
                 foreach (string module in ModulesToInclude)
@@ -44,16 +46,11 @@ namespace ControlService.Core
             _api = new Api(settings.Guid);
             SaveSettings();
 
-
             while (!stoppingToken.IsCancellationRequested)
             {
-
                 CommandsProcessing();
-                
-                
-                
                 _logger.LogInformation("Core running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(30000, stoppingToken);
+                await Task.Delay(_delay, stoppingToken);
             }
         }
 
@@ -88,6 +85,10 @@ namespace ControlService.Core
                     break;
                 case "stopmodule":
                     StopModule(commandlets[1], commandlets.Skip(2).ToArray());
+                    break;
+                case "delay":
+                    _delay = Convert.ToInt32(commandlets[1]);
+                    SaveSettings();
                     break;
                 case "includemodule":
                     IncludeModule(commandlets[1]);
@@ -179,6 +180,7 @@ namespace ControlService.Core
             SettingsModel settings = new SettingsModel();
             settings.Guid = _api?.Guid;
             settings.ExternalModules = Modules?.Keys.ToList();
+            settings.Delay = _delay;
             manager.CreateFile("settings.json", settings);
         }
 

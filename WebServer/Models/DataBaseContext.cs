@@ -13,7 +13,7 @@ namespace WebServer.Models
 
         public DataBaseContext (DbContextOptions<DataBaseContext> options): base(options)
         {
-            Database.EnsureCreated();
+            //Database.EnsureCreated();
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

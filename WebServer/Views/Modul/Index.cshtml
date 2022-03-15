@@ -1,0 +1,19 @@
+﻿@model IEnumerable<WebServer.Models.Modul>
+@{
+    ViewData["Title"] = "Модули";
+}
+<div class="text-center">
+    <h1 class="display-4">Все модули</h1>
+    <table class="table">
+    <tr><td>Имя</td><td>Автор</td><td>Тип файла</td><td></td></tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td> <a asp-controller = "Module" asp-action="Page" asp-route-id = "@item.Id" >@item.Name </a> </td>
+            <td> <a> @item.Author.Name</a></td>
+            <td>  @item.FileType </td>
+            <td> <a class="btn btn-default" asp-controller = "Module" asp-action="Delete" asp-route-id = "@item.Id">Удалить</a></td> 
+        </tr>
+    }
+</table>
+</div>

@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<WebServer.Models.ComputerViewModel>;
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Компьютеры";
 }
 
 <div class="text-center">
@@ -12,8 +12,8 @@
     }
     else
     {
-        <table class ="align-content-center">
-            <tr>Имя</tr><tr>Дата последнего соединения</tr>
+        <table class ="table">
+            <tr>Имя</tr><tr>Дата последнего соединения</tr><tr> </tr>
             @foreach(var item in Model)
             {
                 <tr>

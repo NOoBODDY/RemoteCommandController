@@ -18,7 +18,7 @@ namespace WebServer.Controllers
             _dbContext = context;
         }
 
-        [Authorize(Roles ="admin")]
+        [Authorize(Roles = "admin")]
         [HttpGet]
         public IActionResult Page(int id)
         {
@@ -36,7 +36,7 @@ namespace WebServer.Controllers
         }
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public IActionResult SendCommand (ComputerPageViewModel vm , int id)
+        public IActionResult SendCommand(ComputerPageViewModel vm, int id)
         {
             string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
             User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
@@ -52,7 +52,7 @@ namespace WebServer.Controllers
         }
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public IActionResult Delete (int id)
+        public IActionResult Delete(int id)
         {
             RemoteComputer computer = _dbContext.RemoteComputers.FirstOrDefault(c => c.Id == id);
             if (computer != null)
@@ -63,6 +63,40 @@ namespace WebServer.Controllers
             }
             return NotFound();
         }
+        [Authorize(Roles = "admin")]
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            ComputerViewModel computerVM = new ComputerViewModel();
+            RemoteComputer computer = _dbContext.RemoteComputers.Include(comp => comp.UserParamsForRemotes).FirstOrDefault(c => c.Id == id);
+            if (computer != null)
+            {
+                string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
+                User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
+                computerVM.Id = computer.Id;
+                computerVM.ComputerName = computer.UserParamsForRemotes.FirstOrDefault(p => p.UserId == curentUser.Id).ComputerName;
+                return View(computerVM);
+            }
+            return NotFound();
+        }
+        [Authorize(Roles = "admin")]
+        [HttpGet]
+        public IActionResult Edit(ComputerViewModel computerVM)
+        {
+            if (ModelState.IsValid)
+            {
+                RemoteComputer computer = _dbContext.RemoteComputers.Include(comp => comp.UserParamsForRemotes).FirstOrDefault(c => c.Id == computerVM.Id);
+                if (computer != null)
+                {
+                    string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
+                    User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
 
+                    UserParamsForRemote userParams = computer.UserParamsForRemotes.FirstOrDefault(p => p.UserId == curentUser.Id);
+                    userParams.ComputerName = computerVM.ComputerName;
+                    return RedirectToAction("Page", "Computer", computerVM.Id);
+                }
+            }
+            return View(computerVM);
+        }
     }
 }

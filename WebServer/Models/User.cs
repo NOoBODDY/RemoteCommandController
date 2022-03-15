@@ -10,6 +10,7 @@
         public Role Role { get; set; }
         public List<UserParamsForRemote> UserParamsForRemotes { get; set; }
         public List<Command> Commands { get; set; }
+        public List<Modul> Moduls { get; set; }
 
         public User()
         {

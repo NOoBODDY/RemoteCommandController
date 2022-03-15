@@ -56,6 +56,18 @@ namespace WebServer.Controllers
             return guid.ToString();
 
         }
+        [HttpGet("file")]
+        public async Task<ActionResult<string>> Get([Required] int id)
+        {
+            Modul modul = await _dbContext.Moduls.FirstOrDefaultAsync(m => m.Id == id);
+            if (modul != null)
+            {
+                string file_path = Path.Combine(_appEnvironment.ContentRootPath, modul.FilePath);
+                return PhysicalFile(file_path, $"application/{modul.FileType}");
+            }
+            return NotFound();
+        }
+
 
     }
 }
