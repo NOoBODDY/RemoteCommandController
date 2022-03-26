@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ControlService.ExternalModules;
 
 namespace ControlService.Core.Models
 {
-    public class SettingsModel
+    internal class Message
     {
+        public string Text { get; set; }
         public string Guid { get; set; }
-        public List<string> ExternalModules { get; set; }
-        public int Delay { get; set; }
+        public DateTime Time { get; set; }
     }
 }
