@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ControlService", "ControlSe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleModule", "ConsoleModule\ConsoleModule.csproj", "{2D66255F-17D6-4A22-9E08-BD1D0C3A20D8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorWebServer", "BlazorWebServer\BlazorWebServer.csproj", "{23CF0AC4-56A6-4F3B-95A0-D0B726E1F3B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{2D66255F-17D6-4A22-9E08-BD1D0C3A20D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D66255F-17D6-4A22-9E08-BD1D0C3A20D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D66255F-17D6-4A22-9E08-BD1D0C3A20D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23CF0AC4-56A6-4F3B-95A0-D0B726E1F3B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23CF0AC4-56A6-4F3B-95A0-D0B726E1F3B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23CF0AC4-56A6-4F3B-95A0-D0B726E1F3B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23CF0AC4-56A6-4F3B-95A0-D0B726E1F3B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -9,6 +9,7 @@ namespace ConsoleModule
         public string Name { get; set; }
         public OperationSystemEnum Target { get; set; }
         public Queue<string> CommandsPull { get; set; }
+        public EventHandler<EventMessageArgs> MessageSend { get; set; }
 
         public StatusCodeEnum StartModule(string[] args)
         {
@@ -30,19 +31,27 @@ namespace ConsoleModule
 
         private void Process(string[] args)
         {
+            Trace.WriteLine($"args {args[0]}");
             StringBuilder builder = new StringBuilder();
             builder.AppendJoin(' ', args);
-
             var proc = new ProcessStartInfo()
             {
-                UseShellExecute = true,
+                UseShellExecute = false,
                 WorkingDirectory = @"C:\Windows\System32",
                 FileName = @"C:\Windows\System32\cmd.exe",
                 Arguments = "/c " + builder.ToString(),
-                WindowStyle = ProcessWindowStyle.Hidden
+                WindowStyle = ProcessWindowStyle.Normal,
+                CreateNoWindow = false,
+                ErrorDialog = true
             };
 
-            System.Diagnostics.Process.Start(proc);
+            var process = System.Diagnostics.Process.Start(proc);
+            Trace.WriteLine($"process {process.ProcessName}");
+            if (process == null)
+            {
+                MessageSend?.Invoke(this, new EventMessageArgs { ModuleName = "ConsoleModule", Text = "Cant invoke command" });
+            }
+            MessageSend?.Invoke(this, new EventMessageArgs { ModuleName = "ConsoleModule", Text = "Command invoked" });
         }
     }
 }
