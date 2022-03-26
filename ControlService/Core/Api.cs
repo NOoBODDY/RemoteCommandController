@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using RestSharp;
 using ControlService.Models;
 using ControlService.Core.Models;
-using System.Diagnostics;
 
 namespace ControlService.Core
 {
@@ -23,7 +18,6 @@ namespace ControlService.Core
             if (guid != null && guid != "")
             {
                 Guid = guid;
-                Trace.WriteLine($"guid = {guid}");
             }
             else
             {
@@ -43,13 +37,11 @@ namespace ControlService.Core
 
         internal async Task<List<Command>> GetCommands()
         {
-            Trace.WriteLine($"guid = {Guid}");
             string url = "api/manager/commands";
             RestRequest request = new RestRequest(url, Method.Get);
             request.AddParameter("guid", Guid);
             var resonse = await _client.GetAsync(request);
             List <Command> commands = JsonSerializer.Deserialize<Command[]>(resonse.Content).ToList();
-            Trace.WriteLine($"response = {resonse.Content} ");
             return commands;
         }
 
@@ -58,6 +50,10 @@ namespace ControlService.Core
             string url = "api/download/file";
             RestRequest request = new RestRequest(url, Method.Get);
             request.AddParameter("name", name);
+            if (!Directory.Exists("External"))
+            {
+                Directory.CreateDirectory("External");
+            }
             File.WriteAllBytes($"External/{name}.dll", _client.DownloadDataAsync(request).Result);
         }
 

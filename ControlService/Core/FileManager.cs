@@ -44,8 +44,6 @@ namespace ControlService.Core
         internal T ReadFromFile (string fileName)
         {
             FileInfo info = new FileInfo(_path + "/" + fileName);
-            Trace.WriteLine($"Directory: {info.Directory.FullName}");
-            PupaZalupa.path = info.Directory.FullName;
             if (info.Exists)
             {
                 using (StreamReader reader = new StreamReader(_path + "/" + fileName))

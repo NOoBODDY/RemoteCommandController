@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 using ControlService.ExternalModules;
 using ControlService.Models;
 using ControlService.Core.Models;
-using Microsoft.Extensions.Options;
 using System.Diagnostics;
 
 namespace ControlService.Core
@@ -67,15 +62,12 @@ namespace ControlService.Core
         {
             try
             {
-                Trace.WriteLine($"try work");
-                Trace.WriteLine($"first module = {Modules?.First().Key}");
                 CommandsProcessing();
                 await Task.Delay(_settings.Delay);
             }
             catch (Exception ex)
             {
                 _logger.LogError($"{ex.Message}", DateTimeOffset.Now);
-                Trace.WriteLine($"{ex.Message} work");
             }
 
         }
@@ -105,7 +97,6 @@ namespace ControlService.Core
                 catch( Exception ex)
                 {
                     _logger.LogError(ex, "command skipped", DateTimeOffset.Now);
-                    Trace.WriteLine($"{ex.Message} command skipped");
                 }
                 
             }
@@ -162,25 +153,20 @@ namespace ControlService.Core
         {
             try
             {
-                Trace.WriteLine($"Modules is null: {Modules is null}");
                 IExternalModule module = Modules.FirstOrDefault(u => u.Key == moduleName).Value;
                 if (module != null)
                 {
-                    Trace.WriteLine($"module: {module.Target}");
                     _logger.LogInformation($"starting module {moduleName}", DateTimeOffset.Now);
                     module.StartModule(args);
-                    Trace.WriteLine($"args is null: {args is null}");
-                    Trace.WriteLine($"args: {args}");
                 }
                 else
                 {
                     _logger.LogInformation($"module {moduleName} not found", DateTimeOffset.Now);
-                    Trace.WriteLine($"module {moduleName} not found");
                 }
             }
             catch(Exception ex)
             {
-                Trace.WriteLine($"cant start {moduleName}. {ex.Message}");
+                _logger.LogError($"cant start {moduleName}. {ex.Message}", DateTimeOffset.Now);
             }
             
         }
@@ -207,27 +193,23 @@ namespace ControlService.Core
             if (Modules.ContainsKey(moduleName))
             {
                 _logger.LogInformation($"cant load {moduleName}. It is already loaded", DateTimeOffset.Now);
-                Trace.WriteLine($"cant load {moduleName}. It is already loaded");
             }
             else
             {
                 try
                 {
-                    Trace.WriteLine($"current directory{Environment.CurrentDirectory}");
                     Assembly asm = Assembly.LoadFrom("External/" + moduleName + ".dll");
                     Type? t = asm.GetType($"{moduleName}.{moduleName}");
                     object? obj = Activator.CreateInstance(t);
                     IExternalModule module = (IExternalModule)obj;
                     module.MessageSend = _messager;
                     Modules.Add(moduleName, module);
-                    Trace.WriteLine($"first module = {Modules?.First().Key}");
                     return 0;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogInformation($"cant load {moduleName}", DateTimeOffset.Now);
                     _logger.LogError(ex.Message, DateTimeOffset.Now);
-                    Trace.WriteLine($"cant load {moduleName}. {ex.Message}");
                 }
             }
 
