@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using WebServer.Models;
 using WebServer.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace WebServer.Controllers
 {
@@ -22,7 +23,7 @@ namespace WebServer.Controllers
         [HttpGet]
         public IActionResult Page(int id)
         {
-            RemoteComputer computer = _dbContext.RemoteComputers.FirstOrDefault(u => u.Id == id);
+            RemoteComputer computer = _dbContext.RemoteComputers.Include(c=> c.Moduls).ThenInclude(u=>u.Author).Include(m=> m.Messages).FirstOrDefault(u => u.Id == id);
             ComputerPageViewModel vm = new ComputerPageViewModel();
             vm.Id = computer.Id;
             vm.LastConnection = computer.LastConnection;
@@ -32,6 +33,8 @@ namespace WebServer.Controllers
             UserParamsForRemote parameter = _dbContext.UsersParamsForRemote.FirstOrDefault(u => u.UserId == curentUser.Id && u.RemoteComputerId == id);
             vm.ComputerName = parameter.ComputerName;
             vm.UserId = curentUser.Id;
+            vm.Moduls = computer.Moduls.ToList();
+            vm.Messages = computer.Messages.ToList();
             return View(vm);
         }
         [Authorize(Roles = "admin")]
@@ -80,7 +83,7 @@ namespace WebServer.Controllers
             return NotFound();
         }
         [Authorize(Roles = "admin")]
-        [HttpGet]
+        [HttpPost]
         public IActionResult Edit(ComputerViewModel computerVM)
         {
             if (ModelState.IsValid)
@@ -97,6 +100,34 @@ namespace WebServer.Controllers
                 }
             }
             return View(computerVM);
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpGet]
+        public IActionResult AddModule(int id)
+        {
+            RemoteComputer computer = _dbContext.RemoteComputers.Include(x=> x.Moduls).FirstOrDefault(c => c.Id == id);
+            AddModuleVM vm = new AddModuleVM { Modules = new SelectList (_dbContext.Moduls.ToList(), "Id","Name"), ComputerId = id };
+            return View(vm);
+        }
+        [Authorize(Roles = "admin")]
+        [HttpPost]
+        public IActionResult AddModule(AddModuleVM vm, int id)
+        {
+            if (ModelState.IsValid)
+            {
+                RemoteComputer computer = _dbContext.RemoteComputers.Include(x => x.Moduls).FirstOrDefault(c => c.Id == id);
+                string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
+                User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
+                Modul modul = _dbContext.Moduls.FirstOrDefault(m => m.Id == vm.SelectedModuleId);
+                computer.Moduls.Add(modul);
+                _dbContext.RemoteComputers.Update(computer);
+                Command command = new Command { RemoteComputerId = id, TimeCreation = DateTime.UtcNow, UserId = curentUser.Id, CommandText = $"install {modul.Name}" };
+                _dbContext.Commands.Add(command);
+                _dbContext.SaveChanges();
+                return RedirectToAction("Page", "Computer", id);
+            }
+            return RedirectToAction("AddModule", id);
         }
     }
 }

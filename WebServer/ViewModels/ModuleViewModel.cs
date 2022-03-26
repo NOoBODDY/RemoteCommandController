@@ -9,8 +9,6 @@ namespace WebServer.ViewModels
         [Required]
         public string Name { get; set; }
         [Required]
-        public string FilePath { get; set; }
-        [Required]
         public string FileType { get; set; }
         public IFormFile File { get; set; }
     }

@@ -2,6 +2,7 @@
 using WebServer.Models;
 using WebServer.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace WebServer.Controllers
 {
@@ -34,12 +35,19 @@ namespace WebServer.Controllers
                 ModuleViewModel moduleViewModel = new ModuleViewModel();
                 moduleViewModel.Id = modul.Id;
                 moduleViewModel.Name = modul.Name;
-                moduleViewModel.FilePath = modul.FilePath;
                 moduleViewModel.FileType = modul.FileType;
                 return View(moduleViewModel);
             }
             return Content("Notfound");
         }
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+
+
         [HttpPost]
         public IActionResult Create(ModuleViewModel moduleViewModel)
         {
@@ -47,16 +55,18 @@ namespace WebServer.Controllers
             {
                 if (moduleViewModel != null)
                 {
-                    string path = "/Files/" + moduleViewModel.FilePath;
+                    string path = "/Files/" + moduleViewModel.File.FileName;
                     using (var fileStream = new FileStream(_appEnvironment.WebRootPath + path, FileMode.Create))
                     {
                         moduleViewModel.File.CopyTo(fileStream);
                     }
-                    Modul modul = new Modul { FilePath = moduleViewModel.FilePath, Name = moduleViewModel.Name, FileType = moduleViewModel.FileType };
+                    string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
+                    User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
+                    Modul modul = new Modul { FilePath = path, Name = moduleViewModel.Name, FileType = moduleViewModel.FileType, Author = curentUser };
                     _dbContext.Moduls.Add(modul);
                     _dbContext.SaveChanges();
                     _dbContext.Attach(modul);
-                    return RedirectToAction("Page", "Modul", modul.Id);
+                    return RedirectToAction("Index", "Modul", modul.Id);
                 }
             }
             
@@ -72,7 +82,6 @@ namespace WebServer.Controllers
                 ModuleViewModel moduleViewModel = new ModuleViewModel();
                 moduleViewModel.Id = modul.Id;
                 moduleViewModel.Name = modul.Name;
-                moduleViewModel.FilePath = modul.FilePath;
                 moduleViewModel.FileType = modul.FileType;
                 return View(moduleViewModel);
             }
@@ -90,13 +99,15 @@ namespace WebServer.Controllers
                     modul.Name = moduleViewModel.Name;
                     if (moduleViewModel.File != null)
                     {
-                        string path = "/Files/" + moduleViewModel.FilePath + $"/{moduleViewModel.Name}.{moduleViewModel.FileType}";
+                        string path = "/Files/" + moduleViewModel.File.Name;
                         using (var fileStream = new FileStream(_appEnvironment.WebRootPath + path, FileMode.Create))
                         {
                             moduleViewModel.File.CopyTo(fileStream);
                         }
-                        modul.FilePath = moduleViewModel.FilePath;
                         modul.FileType = moduleViewModel.FileType;
+                        string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
+                        User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
+                        modul.Author = curentUser;
                     }
 
                     _dbContext.Moduls.Update(modul);
@@ -112,9 +123,11 @@ namespace WebServer.Controllers
         {
             Modul modul = _dbContext.Moduls.FirstOrDefault(m => m.Id == id);
             if (modul == null) return RedirectToAction("Index", "Home");
-            FileInfo info = new FileInfo(_appEnvironment.ContentRootPath + modul.FilePath);
-            info.Delete();
             _dbContext.Moduls.Remove(modul);
+            _dbContext.SaveChanges();
+            FileInfo info = new FileInfo(_appEnvironment.WebRootPath + modul.FilePath);
+            info.Delete();
+            
             return RedirectToAction("Index", "Home");
         }
     }
