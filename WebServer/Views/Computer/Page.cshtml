@@ -16,7 +16,7 @@
             
     </form>
     <h1 class="display-3">Сообщения</h1>
-    <div class = "form-group">
+    <div class = "form-group" overflow-y = "scroll" height = "100px">
         <table>
             <tr>
                 <td>Дата</td> <td>Сообщение</td>
@@ -24,7 +24,7 @@
             @foreach (var item in @Model.Messages)
             {
                 <tr>
-                    <td>@item.DateTime</td> <td>@item.message</td>
+                    <td>@item.DateTime.ToLocalTime()</td> <td>@item.message</td>
                 </tr>
             }
         </table>
@@ -49,5 +49,8 @@
     </div>
     <div class="form-group">
         <a asp-action = "AddModule" asp-controller = "Computer" asp-route-id = "@Model.Id" class = "btn">Добавить модуль</a>
+    </div>
+    <div class="form-group">
+        <a asp-action = "CreateScript" asp-controller = "Computer" asp-route-id = "@Model.Id" class = "btn">Добавить скрипт</a>
     </div>
 </div>

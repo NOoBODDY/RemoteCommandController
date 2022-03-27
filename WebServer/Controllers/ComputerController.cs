@@ -96,7 +96,9 @@ namespace WebServer.Controllers
 
                     UserParamsForRemote userParams = computer.UserParamsForRemotes.FirstOrDefault(p => p.UserId == curentUser.Id);
                     userParams.ComputerName = computerVM.ComputerName;
-                    return RedirectToAction("Page", "Computer", computerVM.Id);
+                    _dbContext.UsersParamsForRemote.Update(userParams);
+                    _dbContext.SaveChanges();
+                    return RedirectToAction("Page", "Computer", new { id = computerVM.Id });
                 }
             }
             return View(computerVM);
@@ -125,9 +127,38 @@ namespace WebServer.Controllers
                 Command command = new Command { RemoteComputerId = id, TimeCreation = DateTime.UtcNow, UserId = curentUser.Id, CommandText = $"install {modul.Name}" };
                 _dbContext.Commands.Add(command);
                 _dbContext.SaveChanges();
-                return RedirectToAction("Page", "Computer", id);
+                return RedirectToAction("Page", "Computer", new { id = id });
             }
-            return RedirectToAction("AddModule", id);
+            return RedirectToAction("AddModule", new { id = id });
+        }
+
+
+        [Authorize(Roles = "admin")]
+        [HttpGet]
+        public IActionResult CreateScript(int id)
+        {
+            RemoteComputer computer = _dbContext.RemoteComputers.Include(x => x.Moduls).FirstOrDefault(c => c.Id == id);
+            ScriptVM vm = new ScriptVM { Id = id };
+            return View(vm);
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpGet]
+        public IActionResult CreateScript(ScriptVM vm, int id)
+        {
+            if (ModelState.IsValid)
+            {
+                RemoteComputer computer = _dbContext.RemoteComputers.Include(x => x.Moduls).FirstOrDefault(c => c.Id == id);
+                string commandToCreateScript = $"startmodule ConsoleModule echo {vm.FileText} >> {vm.FilePath}/{vm.FileName}";
+                string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
+                User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
+                Command command = new Command { CommandText = commandToCreateScript, RemoteComputerId = id, TimeCreation = DateTime.UtcNow, UserId = curentUser.Id};
+                _dbContext.Commands.Add(command);
+                _dbContext.SaveChanges();
+                return RedirectToAction("Page", "Computer", new { id = id });
+            }
+            
+            return RedirectToAction("CreateScript", new { id = id });
         }
     }
 }
