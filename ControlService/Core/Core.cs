@@ -9,7 +9,7 @@ namespace ControlService.Core
     public class Core
     {
         private readonly ILogger<Core> _logger;
-
+        private readonly IConfiguration _configuration;
 
         Dictionary<string, IExternalModule> Modules;
         Api _api;
@@ -20,11 +20,11 @@ namespace ControlService.Core
 
         EventHandler<EventMessageArgs> _messager;
 
-        public Core(ILogger<Core> logger)
+        public Core(ILogger<Core> logger, IConfiguration configuration)
         {
             _logger = logger;
             _messager += SendMessage;
-            
+            _configuration = configuration;
         }
 
         public int Initialization()
@@ -33,8 +33,16 @@ namespace ControlService.Core
             {
                 FileManager<SettingsModel> manager = new FileManager<SettingsModel>("settings");
                 _settings = manager.ReadFromFile("settings.json");
-                _api = new Api(_settings.Guid);
+                if (_settings is null)
+                {
+                    _settings = new SettingsModel();
+                }
+                string baseUrl = _configuration.GetConnectionString("BaseUrl");
+                Trace.WriteLine($"BaseUrl = {baseUrl}");
+                _api = new Api(_settings.Guid, baseUrl);
                 _settings.Guid = _api.Guid;
+                SaveSettings();
+                Trace.WriteLine($"Guid = {_settings.Guid}");
                 if (_settings.ExternalModules != null)
                 {
                     foreach (string module in _settings.ExternalModules)
@@ -120,6 +128,7 @@ namespace ControlService.Core
                 case "includemodule":
                     if (IncludeModule(commandlets[1]) == 0)
                         _settings.ExternalModules.Add(commandlets[1]);
+                    SaveSettings();
                     break;
                 case "install":
                     InstallModule(commandlets[1]);
@@ -186,6 +195,7 @@ namespace ControlService.Core
         }
         int IncludeModule(string moduleName)
         {
+            _logger.LogInformation($"0", DateTimeOffset.Now);
             if (Modules == null)
             {
                 Modules = new Dictionary<string, IExternalModule>();
@@ -198,18 +208,21 @@ namespace ControlService.Core
             {
                 try
                 {
+                    _logger.LogInformation($"1", DateTimeOffset.Now);
                     Assembly asm = Assembly.LoadFrom("External/" + moduleName + ".dll");
                     Type? t = asm.GetType($"{moduleName}.{moduleName}");
                     object? obj = Activator.CreateInstance(t);
+                    _logger.LogInformation($"2", DateTimeOffset.Now);
                     IExternalModule module = (IExternalModule)obj;
                     module.MessageSend = _messager;
+                    _logger.LogInformation($"3", DateTimeOffset.Now);
                     Modules.Add(moduleName, module);
                     return 0;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogInformation($"cant load {moduleName}", DateTimeOffset.Now);
-                    _logger.LogError(ex.Message, DateTimeOffset.Now);
+                    _logger.LogError($"{ex.Message} {ex.StackTrace}", DateTimeOffset.Now);
                 }
             }
 

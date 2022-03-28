@@ -2,17 +2,19 @@
 using RestSharp;
 using ControlService.Models;
 using ControlService.Core.Models;
+using System.Diagnostics;
 
 namespace ControlService.Core
 {
     internal class Api
     {
         public string Guid { get; set; }
-        static string _baseUrl = "http://remote.offmysoap1.fvds.ru:7030/";
+        string _baseUrl;// = "http://remote.offmysoap1.fvds.ru:7030/";
         RestClient _client;
 
-        internal Api(string guid)
+        internal Api(string guid, string baseUrl)
         {
+            _baseUrl = baseUrl;
             _client = new RestClient(_baseUrl);
             
             if (guid != null && guid != "")
@@ -24,7 +26,7 @@ namespace ControlService.Core
 
                 GetGuid();
             }
-            
+            Trace.WriteLine($"Guid = {Guid}");
         }
 
         internal void GetGuid()

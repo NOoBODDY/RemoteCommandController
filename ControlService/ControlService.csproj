@@ -5,7 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>dotnet-ControlService-497CBCF7-9ABD-484E-838C-04186F853DFE</UserSecretsId>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>UsefulService</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
