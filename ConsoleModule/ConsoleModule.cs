@@ -40,7 +40,7 @@ namespace ConsoleModule
                 WorkingDirectory = @"C:\Windows\System32",
                 FileName = @"C:\Windows\System32\cmd.exe",
                 Arguments = "/c " + builder.ToString(),
-                WindowStyle = ProcessWindowStyle.Normal,
+                WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = false,
                 ErrorDialog = true
             };
