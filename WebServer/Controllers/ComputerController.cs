@@ -143,7 +143,7 @@ namespace WebServer.Controllers
         }
 
         [Authorize(Roles = "admin")]
-        [HttpGet]
+        [HttpPost]
         public IActionResult CreateScript(ScriptVM vm, int id)
         {
             if (ModelState.IsValid)
