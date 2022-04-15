@@ -17,7 +17,6 @@ namespace ControlService.Core
 
 
         SettingsModel _settings;
-
         EventHandler<EventMessageArgs> _messager;
 
         public Core(ILogger<Core> logger, IConfiguration configuration)
@@ -233,10 +232,6 @@ namespace ControlService.Core
         {
             _api.DownloadFile(moduleName);
         }
-
-        
-        
-
         void SendMessage(object sender, EventMessageArgs args)
         {
             _logger.LogInformation($"Module {args.ModuleName} sending: {args.Text}", DateTimeOffset.Now);

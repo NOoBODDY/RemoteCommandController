@@ -1,4 +1,6 @@
 
+using System.Diagnostics;
+
 namespace ControlService
 {
     public class Worker : BackgroundService
@@ -10,15 +12,16 @@ namespace ControlService
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("before Init: {time}", DateTimeOffset.Now);
             int check = _core.Initialization();
-            _logger.LogInformation("after first Init: {time}", DateTimeOffset.Now);
             while (stoppingToken.IsCancellationRequested || check != 0)
             {
                 await Task.Delay(30000, stoppingToken);
                 check = _core.Initialization();
             }
-            _logger.LogInformation("after next Init: {time}", DateTimeOffset.Now);
+
+#if DEBUG
+            Trace.WriteLine("Core was inited");
+#endif
             while (!stoppingToken.IsCancellationRequested)
             {
                 await _core.Work();
