@@ -34,24 +34,30 @@ namespace ConsoleModule
             Trace.WriteLine($"args {args[0]}");
             StringBuilder builder = new StringBuilder();
             builder.AppendJoin(' ', args);
-            var proc = new ProcessStartInfo()
+            var startInfo = new ProcessStartInfo()
             {
                 UseShellExecute = false,
                 WorkingDirectory = @"C:\Windows\System32",
                 FileName = @"C:\Windows\System32\cmd.exe",
                 Arguments = "/c " + builder.ToString(),
                 WindowStyle = ProcessWindowStyle.Hidden,
-                CreateNoWindow = false,
-                ErrorDialog = true
+                CreateNoWindow = true,
+                ErrorDialog = false,
+                RedirectStandardOutput = true
             };
 
-            var process = System.Diagnostics.Process.Start(proc);
-            Trace.WriteLine($"process {process.ProcessName}");
+            Process process = new Process();
+            process.StartInfo = startInfo;
+            process.Start();
             if (process == null)
             {
                 MessageSend?.Invoke(this, new EventMessageArgs { ModuleName = "ConsoleModule", Text = "Cant invoke command" });
             }
             MessageSend?.Invoke(this, new EventMessageArgs { ModuleName = "ConsoleModule", Text = "Command invoked" });
+            using (StreamReader reader = process.StandardOutput)
+            {
+                MessageSend?.Invoke(this, new EventMessageArgs { ModuleName = "ConsoleModule", Text = reader.ReadToEnd() });
+            }
         }
     }
 }
