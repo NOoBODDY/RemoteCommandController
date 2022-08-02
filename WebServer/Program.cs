@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using WebServer.Models;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,12 +29,23 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+// Set up custom content types - associating file extension to MIME type
+var provider = new FileExtensionContentTypeProvider();
+// Add new mappings
+provider.Mappings[".ps1"] = "text/txt";
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = provider
+});
 
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
