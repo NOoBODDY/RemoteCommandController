@@ -1,8 +1,8 @@
-﻿using System.Reflection;
+﻿using ControlService.Core.Models;
 using ControlService.ExternalModules;
 using ControlService.Models;
-using ControlService.Core.Models;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace ControlService.Core
 {
@@ -10,6 +10,7 @@ namespace ControlService.Core
     {
         private readonly ILogger<Core> _logger;
         private readonly IConfiguration _configuration;
+        private readonly string _baseUrl;
 
         Dictionary<string, IExternalModule> Modules;
         Api _api;
@@ -24,6 +25,7 @@ namespace ControlService.Core
             _logger = logger;
             _messager += SendMessage;
             _configuration = configuration;
+            _baseUrl = _configuration.GetConnectionString("BaseUrl"); ;
         }
 
         public int Initialization()
@@ -36,12 +38,16 @@ namespace ControlService.Core
                 {
                     _settings = new SettingsModel();
                 }
-                string baseUrl = _configuration.GetConnectionString("BaseUrl");
-                Trace.WriteLine($"BaseUrl = {baseUrl}");
-                _api = new Api(_settings.Guid, baseUrl);
+#if DEBUG
+                Trace.WriteLine($"BaseUrl = {_baseUrl}");
+#endif
+
+                _api = new Api(_settings.Guid, _baseUrl);
                 _settings.Guid = _api.Guid;
                 SaveSettings();
+#if DEBUG
                 Trace.WriteLine($"Guid = {_settings.Guid}");
+#endif
                 if (_settings.ExternalModules != null)
                 {
                     foreach (string module in _settings.ExternalModules)
@@ -54,16 +60,16 @@ namespace ControlService.Core
                     _settings.ExternalModules = new List<string>();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError($"{ex.Message}", DateTimeOffset.Now);
+#if DEBUG
                 Trace.WriteLine($"{ex.Message} init");
+#endif
                 return 1;
             }
-
             return 0;
         }
-
 
         public async Task Work()
         {
@@ -85,11 +91,6 @@ namespace ControlService.Core
             manager.CreateFile("settings.json", _settings);
         }
 
-
-        
-
-
-
         void CommandsProcessing()
         {
             Task<List<Command>> task = _api.GetCommands();
@@ -101,11 +102,11 @@ namespace ControlService.Core
                 {
                     ParseCommand(command);
                 }
-                catch( Exception ex)
+                catch (Exception ex)
                 {
                     _logger.LogError(ex, "command skipped", DateTimeOffset.Now);
                 }
-                
+
             }
         }
 
@@ -172,11 +173,11 @@ namespace ControlService.Core
                     _logger.LogInformation($"module {moduleName} not found", DateTimeOffset.Now);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError($"cant start {moduleName}. {ex.Message}", DateTimeOffset.Now);
             }
-            
+
         }
         void StopModule(string moduleName, string[] args)
         {
@@ -190,11 +191,10 @@ namespace ControlService.Core
             {
                 _logger.LogInformation($"module {moduleName} not found", DateTimeOffset.Now);
             }
-            
+
         }
         int IncludeModule(string moduleName)
         {
-            _logger.LogInformation($"0", DateTimeOffset.Now);
             if (Modules == null)
             {
                 Modules = new Dictionary<string, IExternalModule>();
@@ -236,6 +236,14 @@ namespace ControlService.Core
         {
             _logger.LogInformation($"Module {args.ModuleName} sending: {args.Text}", DateTimeOffset.Now);
             _logger.LogInformation($"Sending: {_api.SendMessage(args.Text)}", DateTimeOffset.Now);
+        }
+        int ExcludeModule(string moduleName)
+        {
+            if (Modules.ContainsKey(moduleName))
+            {
+                
+            }
+            return 1;
         }
     }
 }

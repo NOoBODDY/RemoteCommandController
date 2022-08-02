@@ -12,6 +12,7 @@ namespace ControlService
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            
             int check = _core.Initialization();
             while (stoppingToken.IsCancellationRequested || check != 0)
             {
