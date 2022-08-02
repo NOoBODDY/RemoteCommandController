@@ -56,17 +56,23 @@ namespace WebServer.Controllers
             return guid.ToString();
 
         }
-        [HttpGet("file")]
-        public async Task<ActionResult<string>> Get([Required] int id)
+        
+        [HttpPost]
+        public async Task <IActionResult> Post(MessageFromComputer message)
         {
-            Modul modul = await _dbContext.Moduls.FirstOrDefaultAsync(m => m.Id == id);
-            if (modul != null)
+            RemoteComputer computer = _dbContext.RemoteComputers.FirstOrDefault(c => c.GUID == message.Guid);
+            if (computer != null)
             {
-                string file_path = Path.Combine(_appEnvironment.ContentRootPath, modul.FilePath);
-                return PhysicalFile(file_path, $"application/{modul.FileType}");
+                computer.LastConnection = DateTime.UtcNow;
+                Message mes = new Message { RemoteComputerId = computer.Id, message = message.Text, DateTime = message.Time };
+                _dbContext.Messages.Add(mes);
+                await _dbContext.SaveChangesAsync();
+                return Ok();
             }
             return NotFound();
         }
+
+
 
 
     }

@@ -361,4 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/WebServer/wwwroot
+/WebServer/wwwroot/downloadFiles.ps1
+/WebServer/wwwroot/Install.zip
+/BlazorWebServer

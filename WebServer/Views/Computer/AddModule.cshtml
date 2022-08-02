@@ -1,0 +1,18 @@
+﻿@model WebServer.ViewModels.AddModuleVM;
+<div class="text-center">
+    <form asp-action ="AddModule" asp-controller = "Computer" asp-route-id = "@Model.ComputerId" asp-anti-forgery="true" method = "post">
+        <div class="validation" asp-validation-summary="ModelOnly"></div>
+            <div>
+
+                <div class="form-group">
+                    <label  class="control-label">Модуль</label>
+                    @Html.DropDownList("SelectedModuleId", @Model.Modules);
+                    <span asp-validation-for="SelectedModuleId"></span>
+                </div>
+            
+                <div class="form-group">
+                    <input type="submit" value="Отправить" class="btn" />
+                </div>
+            </div> 
+    </form>
+</div>

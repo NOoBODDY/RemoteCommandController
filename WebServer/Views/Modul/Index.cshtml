@@ -9,11 +9,14 @@
     @foreach (var item in Model)
     {
         <tr>
-            <td> <a asp-controller = "Module" asp-action="Page" asp-route-id = "@item.Id" >@item.Name </a> </td>
+            <td> <a asp-controller = "Modul" asp-action="Page" asp-route-id = "@item.Id" >@item.Name </a> </td>
             <td> <a> @item.Author.Name</a></td>
             <td>  @item.FileType </td>
-            <td> <a class="btn btn-default" asp-controller = "Module" asp-action="Delete" asp-route-id = "@item.Id">Удалить</a></td> 
+            <td> <a class="btn btn-default" asp-controller = "Modul" asp-action="Delete" asp-route-id = "@item.Id">Удалить</a></td> 
         </tr>
     }
 </table>
+<div class="form-group">
+    <label class="btn"> <a asp-controller = "Modul" asp-action="Create">Добавить</a> </label>
+</div>
 </div>

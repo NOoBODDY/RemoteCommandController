@@ -15,7 +15,42 @@
             </div>
             
     </form>
+    <h1 class="display-3">Сообщения</h1>
+    <div class = "form-group" overflow-y = "scroll" height = "100px">
+        <table>
+            <tr>
+                <td>Дата</td> <td>Сообщение</td>
+            </tr>
+            @foreach (var item in @Model.Messages)
+            {
+                <tr>
+                    <td>@item.DateTime.ToLocalTime()</td> <td>@item.message</td>
+                </tr>
+            }
+        </table>
+    </div>
+    <h1 class="display-3">Модули</h1>
+    <div class = "form-group">
+        <table>
+            <tr>
+                <td>Модуль</td> <td>Автор</td>
+            </tr>
+            @foreach (var item in @Model.Moduls)
+            {
+                <tr>
+                    <td>@item.Name</td> <td>@item.Author.Name</td>
+                </tr>
+            }
+        </table>
+    </div>
+
     <div class="form-group">
         <a asp-action = "Edit" asp-controller = "Computer" asp-route-id = "@Model.Id" class = "btn">Настройки</a>
+    </div>
+    <div class="form-group">
+        <a asp-action = "AddModule" asp-controller = "Computer" asp-route-id = "@Model.Id" class = "btn">Добавить модуль</a>
+    </div>
+    <div class="form-group">
+        <a asp-action = "CreateScript" asp-controller = "Computer" asp-route-id = "@Model.Id" class = "btn">Добавить скрипт</a>
     </div>
 </div>

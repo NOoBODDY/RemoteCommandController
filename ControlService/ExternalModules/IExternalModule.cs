@@ -30,5 +30,10 @@ namespace ControlService.ExternalModules
         /// <param name="args">stop parameters for module. Will be declared with command "stopmodule"</param>
         public StatusCodeEnum StopModule(string[] args);
 
+        /// <summary>
+        /// Event throwing message to the server.
+        /// Invoke if needed.
+        /// </summary>
+        public EventHandler<EventMessageArgs> MessageSend { get; set; }
     }
 }

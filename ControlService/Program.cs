@@ -2,9 +2,14 @@ using ControlService;
 using ControlService.Core;
 
 IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices(services =>
+    .UseWindowsService(options =>
     {
-        services.AddHostedService<Core>();
+        options.ServiceName = ".NET UsefulService";
+    })
+    .ConfigureServices((context, services) =>
+    {
+        services.AddSingleton<Core>();
+        services.AddHostedService<Worker>();
     })
     .Build();
 

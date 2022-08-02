@@ -17,7 +17,7 @@
             @foreach(var item in Model)
             {
                 <tr>
-                    <td><a asp-action = "Page" asp-controller = "Computer" asp-route-id = "@item.Id">@item.ComputerName</a></td><td>@item.LastConnection</td><td><a asp-action = "Delete" asp-controller = "Computer" asp-route-id = "@item.Id">Удалить</a> </td>
+                    <td><a asp-action = "Page" asp-controller = "Computer" asp-route-id = "@item.Id">@item.ComputerName</a></td><td>@item.LastConnection.ToLocalTime()</td><td><a asp-action = "Delete" asp-controller = "Computer" asp-route-id = "@item.Id">Удалить</a> </td>
                 </tr>                
             }
         </table>
