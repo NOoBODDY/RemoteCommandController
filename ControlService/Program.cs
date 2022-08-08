@@ -8,7 +8,12 @@ IHost host = Host.CreateDefaultBuilder(args)
     })
     .ConfigureServices((context, services) =>
     {
+        services.AddSingleton<SettingsService>();
+        services.AddSingleton<Api>();
         services.AddSingleton<Core>();
+        services.AddSingleton<ModuleFabric>();
+        services.AddSingleton<CommandFabric>();
+        services.AddSingleton<CommandService>();
         services.AddHostedService<Worker>();
     })
     .Build();

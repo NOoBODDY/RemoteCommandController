@@ -1,29 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Text.Json;
-using System.IO;
-using System.Diagnostics;
-using ControlService;
 
 namespace ControlService.Core
 {
     internal class FileManager<T>
     {
         string _path;
-        
+
         internal FileManager(string path)
         {
             _path = path;
         }
 
-        internal void CreateFile (string fileName, T data)
+        internal void CreateFile(string fileName, T data)
         {
             if (!Directory.Exists(_path))
             {
                 Directory.CreateDirectory(_path);
             }
-            using (StreamWriter writer = new StreamWriter(_path +"/" + fileName , false))
+            using (StreamWriter writer = new StreamWriter(_path + "/" + fileName, false))
             {
                 string text = JsonSerializer.Serialize(data);
 
@@ -31,7 +26,7 @@ namespace ControlService.Core
             }
         }
 
-        internal void AddToFile (string fileName, T data)
+        internal void AddToFile(string fileName, T data)
         {
             using (StreamWriter writer = new StreamWriter(_path + "/" + fileName, true))
             {
@@ -41,7 +36,7 @@ namespace ControlService.Core
             }
         }
 
-        internal T ReadFromFile (string fileName)
+        internal T ReadFromFile(string fileName)
         {
             FileInfo info = new FileInfo(_path + "/" + fileName);
             if (info.Exists)
@@ -56,7 +51,7 @@ namespace ControlService.Core
             {
                 return default;
             }
-            
+
         }
 
     }

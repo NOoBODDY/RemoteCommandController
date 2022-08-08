@@ -1,4 +1,4 @@
-﻿using ControlService.ExternalModules;
+﻿using ExternalModule;
 using System.Diagnostics;
 using System.Text;
 
@@ -6,26 +6,44 @@ namespace ConsoleModule
 {
     public class ConsoleModule : IExternalModule
     {
+        /// <summary>
+        /// Name of externalmodule. It will be use to parse input command.
+        /// </summary>
         public string Name { get; set; }
-        public OperationSystemEnum Target { get; set; }
-        public Queue<string> CommandsPull { get; set; }
-        public EventHandler<EventMessageArgs> MessageSend { get; set; }
+        /// <summary>
+        /// Operation system name, where module can be used.
+        /// </summary>
+        //public OperationSystemEnum Target { get; set; }
+        /// <summary>
+        /// Pull of commands to this module.
+        /// </summary>
+        protected Queue<string> _commandsPull { get; set; }
+        /// <summary>
+        /// Event throwing message to the server.
+        /// Invoke if needed.
+        /// </summary>
+        //public EventHandler<EventMessageArgs> MessageSend { get; set; }
 
-        public StatusCodeEnum StartModule(string[] args)
+
+        public void StartModule(string[] args)
         {
             this.Process(args);
-            return StatusCodeEnum.Disposable;
         }
 
-        public StatusCodeEnum StopModule(string[] args)
+        public void  StopModule(string[] args)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddCommand(string command)
         {
             throw new NotImplementedException();
         }
 
         public ConsoleModule()
         {
-            CommandsPull = new Queue<string>();
-            Target = OperationSystemEnum.windows;
+            _commandsPull = new Queue<string>();
+            //Target = OperationSystemEnum.windows;
         }
 
 
@@ -49,6 +67,7 @@ namespace ConsoleModule
             Process process = new Process();
             process.StartInfo = startInfo;
             process.Start();
+            /*
             if (process == null)
             {
                 MessageSend?.Invoke(this, new EventMessageArgs { ModuleName = "ConsoleModule", Text = "Cant invoke command" });
@@ -57,7 +76,9 @@ namespace ConsoleModule
             using (StreamReader reader = process.StandardOutput)
             {
                 MessageSend?.Invoke(this, new EventMessageArgs { ModuleName = "ConsoleModule", Text = reader.ReadToEnd() });
-            }
+            }*/
         }
+
+        
     }
 }

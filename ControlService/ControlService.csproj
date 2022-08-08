@@ -15,4 +15,8 @@
     <PackageReference Include="RestSharp" Version="107.3.0" />
     <PackageReference Include="System.Text.Json" Version="6.0.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExternalModule\ExternalModule.csproj" />
+  </ItemGroup>
 </Project>
