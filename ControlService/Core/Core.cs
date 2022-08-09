@@ -3,7 +3,7 @@ using ExternalModule;
 
 namespace ControlService.Core
 {
-    public class Core : IExternalModule
+    public class Core
     {
         //TODO: answers from modules
 
@@ -11,25 +11,19 @@ namespace ControlService.Core
         private readonly ILogger<Core> _logger;
         private readonly IConfiguration _configuration;
         private readonly SettingsService _settingsService;
-        private readonly string _baseUrl;
-
-
-        Dictionary<string, IExternalModule> Modules;
-
-
-
-        SettingsService _settings;
         //_______________________________________________________________
 
         private readonly Api _api;
         private readonly CommandService _commandService;
 
-        public Core(SettingsService settingsService, Api api, CommandService commandService)
+        public Core(SettingsService settingsService, Api api, CommandService commandService, ILogger<Core> logger)
         {
             _settingsService = settingsService;
             //_messager += SendMessage;
             _api = api;
             _commandService = commandService;
+            _commandService.MessageHandler = SendMessage;
+            _logger = logger;
         }
 
         internal async Task MainItteration()
@@ -49,11 +43,11 @@ namespace ControlService.Core
 
         //_______________________________________________________________
 
-        //void SendMessage(object sender, EventMessageArgs args)
-        //{
-        //    _logger.LogInformation($"Module {args.ModuleName} sending: {args.Text}", DateTimeOffset.Now);
-        //    _logger.LogInformation($"Sending: {_api.SendMessage(args.Text)}", DateTimeOffset.Now);
-        //}
+        void SendMessage(object sender, EventMessageArgs args)
+        {
+            _logger.LogInformation($"Module {args.ModuleName} sending: {args.Text}", DateTimeOffset.Now);
+            _logger.LogInformation($"Sending: {_api.SendMessage(args.Text)}", DateTimeOffset.Now);
+        }
 
         public void StartModule(string[] args)
         {

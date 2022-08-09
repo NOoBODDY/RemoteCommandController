@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleModule", "ConsoleMod
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWebServer", "BlazorWebServer\BlazorWebServer.csproj", "{23CF0AC4-56A6-4F3B-95A0-D0B726E1F3B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdateService", "UpdateService\UpdateService.csproj", "{7DFFE605-F199-419B-AD39-5E9C2D28C8F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UpdateService", "UpdateService\UpdateService.csproj", "{7DFFE605-F199-419B-AD39-5E9C2D28C8F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalModule", "ExternalModule\ExternalModule.csproj", "{232E06A7-6796-4CB5-A97F-D4F4AE67F808}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{7DFFE605-F199-419B-AD39-5E9C2D28C8F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DFFE605-F199-419B-AD39-5E9C2D28C8F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7DFFE605-F199-419B-AD39-5E9C2D28C8F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{232E06A7-6796-4CB5-A97F-D4F4AE67F808}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{232E06A7-6796-4CB5-A97F-D4F4AE67F808}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{232E06A7-6796-4CB5-A97F-D4F4AE67F808}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{232E06A7-6796-4CB5-A97F-D4F4AE67F808}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

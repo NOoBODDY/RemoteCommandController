@@ -1,5 +1,5 @@
 ﻿using ControlService.Core.Commands;
-
+using ExternalModule;
 
 namespace ControlService.Core
 {
@@ -12,6 +12,8 @@ namespace ControlService.Core
 
         private Queue<string> _commands;
         private Task _task;
+
+        public EventHandler<EventMessageArgs> MessageHandler { get; set; }
 
         public CommandService(ModuleFabric moduleFabric, CommandFabric commandFabric)
         {
@@ -72,8 +74,7 @@ namespace ControlService.Core
             string[] arguments = commandlets.Skip(2).ToArray();
 
             AbstractCommand command = _commandFabric.CreateInstance(commandlet);
-            command.AddReciever(_moduleFabric.CreateInstance(moduleName));
-
+            command.AddReciever(_moduleFabric.CreateInstance(moduleName), MessageHandler);
             command.Execute(arguments);
 
         }
