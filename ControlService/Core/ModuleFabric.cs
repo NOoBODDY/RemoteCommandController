@@ -1,4 +1,5 @@
 ﻿using ExternalModule;
+using ControlService.Core.Models;
 using System.Reflection;
 
 namespace ControlService.Core
@@ -6,20 +7,18 @@ namespace ControlService.Core
     public class ModuleFabric
     {
 
-        //TODO: What about core?
         private readonly SettingsService _settingsService;
         private Dictionary<string, IExternalModule> _modules;
 
-        public ModuleFabric(SettingsService settingsService /*, Core core*/)
+        public ModuleFabric(SettingsService settingsService , CoreModule coreModule)
         {
             _modules = new Dictionary<string, IExternalModule>();
-            //_modules.Add("core", core);
+            _modules.Add("core", coreModule);
             _settingsService = settingsService;
             ImportModules(_settingsService.ExternalModules);
         }
         private void ImportModules(List<string> externalModules)
         {
-            _modules = new Dictionary<string, IExternalModule>();
             foreach (var moduleName in externalModules)
             {
                 _modules.Add(moduleName, LoadModule(moduleName));

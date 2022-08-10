@@ -1,11 +1,12 @@
-﻿namespace ControlService.Core.Commands
+﻿using ControlService.Core.Models;
+namespace ControlService.Core.Commands
 {
     [Command("install")]
     internal class InstallCoreCommand : AbstractCommand
     {
         internal override void Execute(string[] args)
         {
-            throw new NotImplementedException();
+            ((CoreModule)_module).InstallModule(args[0]);
         }
     }
 }

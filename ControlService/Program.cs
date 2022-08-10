@@ -1,5 +1,6 @@
 using ControlService;
 using ControlService.Core;
+using ControlService.Core.Models;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .UseWindowsService(options =>
@@ -14,6 +15,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<ModuleFabric>();
         services.AddSingleton<CommandFabric>();
         services.AddSingleton<CommandService>();
+        services.AddSingleton<CoreModule>();
         services.AddHostedService<Worker>();
     })
     .Build();
