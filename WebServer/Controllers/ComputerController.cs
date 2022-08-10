@@ -124,7 +124,7 @@ namespace WebServer.Controllers
                 Modul modul = _dbContext.Moduls.FirstOrDefault(m => m.Id == vm.SelectedModuleId);
                 computer.Moduls.Add(modul);
                 _dbContext.RemoteComputers.Update(computer);
-                Command command = new Command { RemoteComputerId = id, TimeCreation = DateTime.UtcNow, UserId = curentUser.Id, CommandText = $"install {modul.Name}" };
+                Command command = new Command { RemoteComputerId = id, TimeCreation = DateTime.UtcNow, UserId = curentUser.Id, CommandText = $"core install {modul.Name}" };
                 _dbContext.Commands.Add(command);
                 _dbContext.SaveChanges();
                 return RedirectToAction("Page", "Computer", new { id = id });
@@ -149,7 +149,7 @@ namespace WebServer.Controllers
             if (ModelState.IsValid)
             {
                 RemoteComputer computer = _dbContext.RemoteComputers.Include(x => x.Moduls).FirstOrDefault(c => c.Id == id);
-                string commandToCreateScript = $"startmodule ConsoleModule echo {vm.FileText} >> {vm.FilePath}/{vm.FileName}";
+                string commandToCreateScript = $"ConsoleModule startmodule echo {vm.FileText} >> {vm.FilePath}/{vm.FileName}";
                 string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
                 User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
                 Command command = new Command { CommandText = commandToCreateScript, RemoteComputerId = id, TimeCreation = DateTime.UtcNow, UserId = curentUser.Id};
