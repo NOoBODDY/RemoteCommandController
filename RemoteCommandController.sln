@@ -13,7 +13,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWebServer", "BlazorWe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UpdateService", "UpdateService\UpdateService.csproj", "{7DFFE605-F199-419B-AD39-5E9C2D28C8F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalModule", "ExternalModule\ExternalModule.csproj", "{232E06A7-6796-4CB5-A97F-D4F4AE67F808}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExternalModule", "ExternalModule\ExternalModule.csproj", "{232E06A7-6796-4CB5-A97F-D4F4AE67F808}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Элементы решения", "Элементы решения", "{BBBC2D78-5053-49B2-9BF6-DEEF8347E300}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
