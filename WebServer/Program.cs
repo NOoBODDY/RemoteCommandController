@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using WebServer.Models;
+using WebServer.Services;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.StaticFiles;
+using WebServer.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews().AddJsonOptions(x=> x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 string connection = builder.Configuration.GetConnectionString("LocalConnection");
 builder.Services.AddDbContext<DataBaseContext>(options => options.UseNpgsql(connection));
+builder.Services.AddScoped<IUserService, DataBaseUserService>();
+builder.Services.AddScoped<IUserParamsForRemoteService, DataBaseUserParamsForRemoteService>();
+builder.Services.AddScoped<IRemoteComputerService, DataBaseRemoteComputerService>();
+builder.Services.AddScoped<IModuleService, DataBaseModuleService>();
+builder.Services.AddScoped<IMessageService, DataBaseMessageService>();
+builder.Services.AddScoped<ICommandService, DataBaseCommandService>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {

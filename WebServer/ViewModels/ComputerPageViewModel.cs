@@ -9,7 +9,7 @@ namespace WebServer.ViewModels
         public string Command { get; set; }
         public DateTime LastConnection { get; set; }
         public int UserId { get; set; }
-        public List<Modul> Moduls { get; set; }
+        public List<Module> Moduls { get; set; }
         public List<Message> Messages { get; set; }
     }
 }

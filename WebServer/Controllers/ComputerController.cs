@@ -5,99 +5,123 @@ using Microsoft.EntityFrameworkCore;
 using WebServer.Models;
 using WebServer.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using WebServer.Repositories;
+using WebServer.Services;
 
 namespace WebServer.Controllers
 {
     public class ComputerController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-        DataBaseContext _dbContext;
-
-        public ComputerController(ILogger<HomeController> logger, DataBaseContext context)
+        private readonly ILogger<ComputerController> _logger;
+        private readonly IRemoteComputerService _remoteComputerService;
+        private readonly IUserService _userService;
+        private readonly IUserParamsForRemoteService _userParamsForRemoteService;
+        private readonly ICommandService _commandService;
+        private readonly IModuleService _moduleService;
+        public ComputerController(ILogger<ComputerController> logger,
+            IRemoteComputerService remoteComputerService, IUserService userService,
+            IUserParamsForRemoteService userParamsForRemoteService, ICommandService commandService,
+            IModuleService moduleService)
         {
             _logger = logger;
-            _dbContext = context;
+            _remoteComputerService = remoteComputerService;
+            _userService = userService;
+            _userParamsForRemoteService = userParamsForRemoteService;
+            _commandService = commandService;
+            _moduleService = moduleService;
         }
 
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public IActionResult Page(int id)
+        public async Task<IActionResult> Page(int id)
         {
-            RemoteComputer computer = _dbContext.RemoteComputers.Include(c=> c.Moduls).ThenInclude(u=>u.Author).Include(m=> m.Messages).FirstOrDefault(u => u.Id == id);
-            ComputerPageViewModel vm = new ComputerPageViewModel();
-            vm.Id = computer.Id;
-            vm.LastConnection = computer.LastConnection;
+            RemoteComputer computer = await _remoteComputerService.GetComputerByIdWithModulsWithAuthorWithMessages(id);
+            
 
             string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
-            User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
-            UserParamsForRemote parameter = _dbContext.UsersParamsForRemote.FirstOrDefault(u => u.UserId == curentUser.Id && u.RemoteComputerId == id);
-            vm.ComputerName = parameter.ComputerName;
-            vm.UserId = curentUser.Id;
-            vm.Moduls = computer.Moduls.ToList();
-            vm.Messages = computer.Messages.ToList();
+            User curentUser = await _userService.GetUserByName(userName);
+            UserParamsForRemote parameter =
+                await _userParamsForRemoteService.GetParamsByUserIdAndComputerId(curentUser.Id, computer.Id);
+            ComputerPageViewModel vm = new ComputerPageViewModel
+            {
+                Id = computer.Id,
+                LastConnection = computer.LastConnection,
+                ComputerName = parameter.ComputerName,
+                UserId = curentUser.Id,
+                Moduls = computer.Modules.ToList(),
+                Messages = computer.Messages.ToList()
+            };
             return View(vm);
         }
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public IActionResult SendCommand(ComputerPageViewModel vm, int id)
+        public async Task<IActionResult> SendCommand(ComputerPageViewModel vm, int id)
         {
             string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
-            User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
-            RemoteComputer computer = _dbContext.RemoteComputers.FirstOrDefault(u => u.Id == id);
-            Command command = new Command();
-            command.RemoteComputerId = computer.Id;
-            command.UserId = curentUser.Id;
-            command.TimeCreation = DateTime.UtcNow;
-            command.CommandText = vm.Command;
-            _dbContext.Commands.Add(command);
-            _dbContext.SaveChanges();
+            User curentUser = await _userService.GetUserByName(userName);
+            RemoteComputer computer = await _remoteComputerService.GetComputerById(id);
+            Command command = new Command
+            {
+                RemoteComputerId = computer.Id,
+                UserId = curentUser.Id,
+                TimeCreation = DateTime.UtcNow,
+                CommandText = vm.Command
+            };
+            _commandService.AddCommand(command);
             return RedirectToAction("Index", "Home");
         }
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            RemoteComputer computer = _dbContext.RemoteComputers.FirstOrDefault(c => c.Id == id);
-            if (computer != null)
+            try
             {
-                _dbContext.RemoteComputers.Remove(computer);
-                _dbContext.SaveChanges();
+                await _remoteComputerService.DeleteComputerById(id);
                 return RedirectToAction("Index", "Home");
             }
-            return NotFound();
+            catch (ArgumentNullException e)
+            {
+                return NotFound();
+            }
+            
         }
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             ComputerViewModel computerVM = new ComputerViewModel();
-            RemoteComputer computer = _dbContext.RemoteComputers.Include(comp => comp.UserParamsForRemotes).FirstOrDefault(c => c.Id == id);
-            if (computer != null)
+
+            try
             {
                 string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
-                User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
-                computerVM.Id = computer.Id;
-                computerVM.ComputerName = computer.UserParamsForRemotes.FirstOrDefault(p => p.UserId == curentUser.Id).ComputerName;
+                User curentUser = await _userService.GetUserByName(userName);
+                computerVM.Id = id;
+                computerVM.ComputerName = await _remoteComputerService.GetComputerNameForUserById(id, curentUser.Id);
                 return View(computerVM);
             }
-            return NotFound();
+            catch (ArgumentNullException e)
+            {
+                return NotFound();
+            }
+                
+                
+                
         }
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public IActionResult Edit(ComputerViewModel computerVM)
+        public async Task<IActionResult> Edit(ComputerViewModel computerVM)
         {
             if (ModelState.IsValid)
             {
-                RemoteComputer computer = _dbContext.RemoteComputers.Include(comp => comp.UserParamsForRemotes).FirstOrDefault(c => c.Id == computerVM.Id);
+                RemoteComputer? computer = await _remoteComputerService.GetComputerByIdWithParams(computerVM.Id);
                 if (computer != null)
                 {
                     string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
-                    User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
+                    User curentUser = await _userService.GetUserByName(userName);
 
-                    UserParamsForRemote userParams = computer.UserParamsForRemotes.FirstOrDefault(p => p.UserId == curentUser.Id);
+                    UserParamsForRemote? userParams = computer.UserParamsForRemotes.FirstOrDefault(p => p.UserId == curentUser.Id);
                     userParams.ComputerName = computerVM.ComputerName;
-                    _dbContext.UsersParamsForRemote.Update(userParams);
-                    _dbContext.SaveChanges();
+                    _userParamsForRemoteService.SaveParams(userParams);
                     return RedirectToAction("Page", "Computer", new { id = computerVM.Id });
                 }
             }
@@ -106,27 +130,27 @@ namespace WebServer.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public IActionResult AddModule(int id)
+        public async Task<IActionResult> AddModule(int id)
         {
-            RemoteComputer computer = _dbContext.RemoteComputers.Include(x=> x.Moduls).FirstOrDefault(c => c.Id == id);
-            AddModuleVM vm = new AddModuleVM { Modules = new SelectList (_dbContext.Moduls.ToList(), "Id","Name"), ComputerId = id };
+            AddModuleVM vm = new AddModuleVM { Modules = new SelectList (await _moduleService.GetAllModules(), "Id","Name"), ComputerId = id };
             return View(vm);
         }
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public IActionResult AddModule(AddModuleVM vm, int id)
+        public async Task<IActionResult> AddModule(AddModuleVM vm, int id)
         {
             if (ModelState.IsValid)
             {
-                RemoteComputer computer = _dbContext.RemoteComputers.Include(x => x.Moduls).FirstOrDefault(c => c.Id == id);
                 string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
-                User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
-                Modul modul = _dbContext.Moduls.FirstOrDefault(m => m.Id == vm.SelectedModuleId);
-                computer.Moduls.Add(modul);
-                _dbContext.RemoteComputers.Update(computer);
-                Command command = new Command { RemoteComputerId = id, TimeCreation = DateTime.UtcNow, UserId = curentUser.Id, CommandText = $"core install {modul.Name}" };
-                _dbContext.Commands.Add(command);
-                _dbContext.SaveChanges();
+                User curentUser = await _userService.GetUserByName(userName);
+                Module module = await _moduleService.GetModuleById(vm.SelectedModuleId);
+                _remoteComputerService.AddModule(module, id);
+                Command command = new Command
+                {
+                    RemoteComputerId = id, TimeCreation = DateTime.UtcNow, UserId = curentUser.Id,
+                    CommandText = $"core install {module.Name}"
+                };
+                _commandService.AddCommand(command);
                 return RedirectToAction("Page", "Computer", new { id = id });
             }
             return RedirectToAction("AddModule", new { id = id });
@@ -135,26 +159,23 @@ namespace WebServer.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpGet]
-        public IActionResult CreateScript(int id)
+        public async Task<IActionResult> CreateScript(int id)
         {
-            RemoteComputer computer = _dbContext.RemoteComputers.Include(x => x.Moduls).FirstOrDefault(c => c.Id == id);
             ScriptVM vm = new ScriptVM { Id = id };
             return View(vm);
         }
 
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public IActionResult CreateScript(ScriptVM vm, int id)
+        public async Task<IActionResult> CreateScript(ScriptVM vm, int id)
         {
             if (ModelState.IsValid)
             {
-                RemoteComputer computer = _dbContext.RemoteComputers.Include(x => x.Moduls).FirstOrDefault(c => c.Id == id);
                 string commandToCreateScript = $"ConsoleModule startmodule echo {vm.FileText} >> {vm.FilePath}/{vm.FileName}";
                 string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
-                User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
+                User curentUser = await _userService.GetUserByName(userName);
                 Command command = new Command { CommandText = commandToCreateScript, RemoteComputerId = id, TimeCreation = DateTime.UtcNow, UserId = curentUser.Id};
-                _dbContext.Commands.Add(command);
-                _dbContext.SaveChanges();
+                _commandService.AddCommand(command);
                 return RedirectToAction("Page", "Computer", new { id = id });
             }
             

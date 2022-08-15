@@ -8,6 +8,6 @@
         public int UserId { get; set; }
         public User User { get; set; }
         public int RemoteComputerId { get; set; }
-        public RemoteComputer RemoteComputer { get; set; }
+        public RemoteComputer? RemoteComputer { get; set; }
     }
 }

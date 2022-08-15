@@ -5,7 +5,7 @@ namespace ControlService.Core
 {
     public class Core
     {
-        //TODO: answers from modules
+        
 
 
         private readonly ILogger<Core> _logger;
@@ -47,21 +47,6 @@ namespace ControlService.Core
         {
             _logger.LogInformation($"Module {args.ModuleName} sending: {args.Text}", DateTimeOffset.Now);
             _logger.LogInformation($"Sending: {_api.SendMessage(args.Text)}", DateTimeOffset.Now);
-        }
-
-        public void StartModule(string[] args)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void StopModule(string[] args)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AddCommand(string command)
-        {
-            throw new NotImplementedException();
         }
     }
 }

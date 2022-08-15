@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
+using WebServer.Repositories;
+
 namespace WebServer.Models
 {
     public class SampleContextFactory : IDesignTimeDbContextFactory<DataBaseContext>
@@ -14,7 +16,7 @@ namespace WebServer.Models
             // получаем конфигурацию из файла appsettings.json
             ConfigurationBuilder builder = new ConfigurationBuilder();
             builder.SetBasePath(Directory.GetCurrentDirectory());
-            builder.AddJsonFile("appsettings.json");
+            builder.AddJsonFile("appsettings.Development.json");
             IConfigurationRoot config = builder.Build();
 
             // получаем строку подключения из файла appsettings.json

@@ -1,13 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
-namespace WebServer.Models
+using WebServer.Models;
+
+namespace WebServer.Repositories
 {
     public class DataBaseContext: DbContext
     {
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Role> Roles { get; set; } = null!;
-        public DbSet<UserParamsForRemote> UsersParamsForRemote { get; set; } = null!;
-        public DbSet<RemoteComputer> RemoteComputers { get; set; } = null!;
-        public DbSet<Modul> Moduls { get; set; } = null!;
+        public DbSet<UserParamsForRemote?> UsersParamsForRemote { get; set; } = null!;
+        public DbSet<RemoteComputer?> RemoteComputers { get; set; } = null!;
+        public DbSet<Module> Moduls { get; set; } = null!;
         public DbSet<Message> Messages { get; set; } = null!;
         public DbSet<Command> Commands { get; set; } = null!;
 

@@ -5,16 +5,17 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 using WebServer.Models;
+using WebServer.Services;
 using WebServer.ViewModels;
 
 namespace WebServer.Controllers
 {
     public class AccountController : Controller
     {
-        private DataBaseContext _context;
-        public AccountController(DataBaseContext context)
+        private IUserService _dataUserService;
+        public AccountController(IUserService userService)
         {
-            _context = context;
+            _dataUserService = userService;
         }
         [HttpGet]
         public IActionResult Register()
@@ -27,17 +28,11 @@ namespace WebServer.Controllers
         {
             if (ModelState.IsValid)
             {
-                User user = await _context.Users.FirstOrDefaultAsync(u => u.Name == model.Name);
+                User user = await _dataUserService.GetUserByName(model.Name);
                 if (user == null)
                 {
                     // добавляем пользователя в бд
-                    user = new User { Name = model.Name, Password = model.Password };
-                    Role userRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "user");
-                    if (userRole != null)
-                        user.Role = userRole;
-
-                    _context.Users.Add(user);
-                    await _context.SaveChangesAsync();
+                    await _dataUserService.AddUser(model.Name, model.Password);
 
                     await Authenticate(user); // аутентификация
 
@@ -59,9 +54,7 @@ namespace WebServer.Controllers
         {
             if (ModelState.IsValid)
             {
-                User user = await _context.Users
-                    .Include(u => u.Role)
-                    .FirstOrDefaultAsync(u => u.Name == model.Name && u.Password == model.Password);
+                User user = await _dataUserService.GetUserByNameWithRole(model.Name, model.Password);
                 if (user != null)
                 {
                     await Authenticate(user); // аутентификация
@@ -98,17 +91,17 @@ namespace WebServer.Controllers
         {
             if (ModelState.IsValid)
             {
-                string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
-                User curentUser = _context.Users.FirstOrDefault(u => u.Name == userName);
-
-                if (curentUser != null)
+                try
                 {
-                    curentUser.Password = model.Password;
-                    _context.Users.Update(curentUser);
-                    _context.SaveChanges();
+                    string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
+                    await _dataUserService.UpdatePassword(userName, model.Password);
                     return RedirectToAction("Index", "Home");
                 }
-                ModelState.AddModelError("", "Некорректные логин и(или) пароль");
+                catch (ArgumentNullException e)
+                {
+                    ModelState.AddModelError("", "Некорректные логин и(или) пароль");
+                }
+
             }
             return View(model);
         }

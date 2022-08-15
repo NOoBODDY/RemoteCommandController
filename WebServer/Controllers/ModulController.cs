@@ -3,39 +3,45 @@ using WebServer.Models;
 using WebServer.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using WebServer.Repositories;
+using WebServer.Services;
 
 namespace WebServer.Controllers
 {
     public class ModulController : Controller
     {
         private readonly ILogger<ModulController> _logger;
-        DataBaseContext _dbContext;
+        private readonly IModuleService _moduleService;
+        private readonly IUserService _userService;
         IWebHostEnvironment _appEnvironment;
 
-        public ModulController(ILogger<ModulController> logger, DataBaseContext context, IWebHostEnvironment appEnvironment)
+        public ModulController(ILogger<ModulController> logger, IWebHostEnvironment appEnvironment, IModuleService moduleService, IUserService userService)
         {
             _logger = logger;
-            _dbContext = context;
             _appEnvironment = appEnvironment;
+            _moduleService = moduleService;
+            _userService = userService;
         }
         
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             
 
-            return View(_dbContext.Moduls.Include(m=> m.Author).ToList());
+            return View((await _moduleService.GetAllModulesWithAuthor()).ToList());
         }
 
         [HttpGet]
-        public IActionResult Page(int id)
+        public async Task<IActionResult> Page(int id)
         {
-            Modul modul = _dbContext.Moduls.FirstOrDefault(m => m.Id == id);
-            if (modul != null)
+            Module module = await _moduleService.GetModuleById(id);
+            if (module != null)
             {
-                ModuleViewModel moduleViewModel = new ModuleViewModel();
-                moduleViewModel.Id = modul.Id;
-                moduleViewModel.Name = modul.Name;
-                moduleViewModel.FileType = modul.FileType;
+                ModuleViewModel moduleViewModel = new ModuleViewModel
+                {
+                    Id = module.Id,
+                    Name = module.Name,
+                    FileType = module.FileType
+                };
                 return View(moduleViewModel);
             }
             return Content("Notfound");
@@ -49,7 +55,7 @@ namespace WebServer.Controllers
 
 
         [HttpPost]
-        public IActionResult Create(ModuleViewModel moduleViewModel)
+        public async Task<IActionResult> Create(ModuleViewModel moduleViewModel)
         {
             if(ModelState.IsValid)
             {
@@ -61,12 +67,10 @@ namespace WebServer.Controllers
                         moduleViewModel.File.CopyTo(fileStream);
                     }
                     string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
-                    User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
-                    Modul modul = new Modul { FilePath = path, Name = moduleViewModel.Name, FileType = moduleViewModel.FileType, Author = curentUser };
-                    _dbContext.Moduls.Add(modul);
-                    _dbContext.SaveChanges();
-                    _dbContext.Attach(modul);
-                    return RedirectToAction("Index", "Modul", modul.Id);
+                    User curentUser = await _userService.GetUserByName(userName);
+                    Module module = new Module { FilePath = path, Name = moduleViewModel.Name, FileType = moduleViewModel.FileType, Author = curentUser };
+                    await _moduleService.AddNewModule(module);
+                    return RedirectToAction("Index", "Modul", module.Id);
                 }
             }
             
@@ -74,29 +78,31 @@ namespace WebServer.Controllers
         }
 
         [HttpGet]
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            Modul modul = _dbContext.Moduls.FirstOrDefault(m => m.Id == id);
-            if (modul != null)
+            Module module = await _moduleService.GetModuleById(id);
+            if (module != null)
             {
-                ModuleViewModel moduleViewModel = new ModuleViewModel();
-                moduleViewModel.Id = modul.Id;
-                moduleViewModel.Name = modul.Name;
-                moduleViewModel.FileType = modul.FileType;
+                ModuleViewModel moduleViewModel = new ModuleViewModel
+                {
+                    Id = module.Id,
+                    Name = module.Name,
+                    FileType = module.FileType
+                };
                 return View(moduleViewModel);
             }
             return Content("Notfound");
         }
 
         [HttpPost]
-        public IActionResult Edit(ModuleViewModel moduleViewModel)
+        public async Task<IActionResult> Edit(ModuleViewModel moduleViewModel)
         {
             if(ModelState.IsValid)
             {
                 if (moduleViewModel != null)
                 {
-                    Modul modul = _dbContext.Moduls.FirstOrDefault(m => m.Id == moduleViewModel.Id);
-                    modul.Name = moduleViewModel.Name;
+                    Module module = await _moduleService.GetModuleById(moduleViewModel.Id);
+                    module.Name = moduleViewModel.Name;
                     if (moduleViewModel.File != null)
                     {
                         string path = "/Files/" + moduleViewModel.File.Name;
@@ -104,28 +110,26 @@ namespace WebServer.Controllers
                         {
                             moduleViewModel.File.CopyTo(fileStream);
                         }
-                        modul.FileType = moduleViewModel.FileType;
+                        module.FileType = moduleViewModel.FileType;
                         string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
-                        User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
-                        modul.Author = curentUser;
+                        User curentUser = await _userService.GetUserByName(userName);
+                        module.Author = curentUser;
                     }
 
-                    _dbContext.Moduls.Update(modul);
-                    _dbContext.SaveChanges();
-                    return RedirectToAction("Page", "Modul", modul.Id);
+                    await _moduleService.UpdateModule(module);
+                    return RedirectToAction("Page", "Modul", module.Id);
                 }
             }
             return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            Modul modul = _dbContext.Moduls.FirstOrDefault(m => m.Id == id);
-            if (modul == null) return RedirectToAction("Index", "Home");
-            _dbContext.Moduls.Remove(modul);
-            _dbContext.SaveChanges();
-            FileInfo info = new FileInfo(_appEnvironment.WebRootPath + modul.FilePath);
+            Module module = await _moduleService.GetModuleById(id);
+            if (module == null) return RedirectToAction("Index", "Home");
+            _moduleService.DeleteModule(module);
+            FileInfo info = new FileInfo(_appEnvironment.WebRootPath + module.FilePath);
             info.Delete();
             
             return RedirectToAction("Index", "Home");

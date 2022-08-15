@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using WebServer.Models;
+using WebServer.Repositories;
 
 #nullable disable
 
@@ -22,19 +22,19 @@ namespace WebServer.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ModulRemoteComputer", b =>
+            modelBuilder.Entity("ModuleRemoteComputer", b =>
                 {
-                    b.Property<int>("ModulsId")
+                    b.Property<int>("ModulesId")
                         .HasColumnType("integer");
 
                     b.Property<int>("RemoteComputersId")
                         .HasColumnType("integer");
 
-                    b.HasKey("ModulsId", "RemoteComputersId");
+                    b.HasKey("ModulesId", "RemoteComputersId");
 
                     b.HasIndex("RemoteComputersId");
 
-                    b.ToTable("ModulRemoteComputer");
+                    b.ToTable("ModuleRemoteComputer");
                 });
 
             modelBuilder.Entity("WebServer.Models.Command", b =>
@@ -92,7 +92,7 @@ namespace WebServer.Migrations
                     b.ToTable("Messages");
                 });
 
-            modelBuilder.Entity("WebServer.Models.Modul", b =>
+            modelBuilder.Entity("WebServer.Models.Module", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -232,11 +232,11 @@ namespace WebServer.Migrations
                     b.ToTable("UsersParamsForRemote");
                 });
 
-            modelBuilder.Entity("ModulRemoteComputer", b =>
+            modelBuilder.Entity("ModuleRemoteComputer", b =>
                 {
-                    b.HasOne("WebServer.Models.Modul", null)
+                    b.HasOne("WebServer.Models.Module", null)
                         .WithMany()
-                        .HasForeignKey("ModulsId")
+                        .HasForeignKey("ModulesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -277,7 +277,7 @@ namespace WebServer.Migrations
                     b.Navigation("RemoteComputer");
                 });
 
-            modelBuilder.Entity("WebServer.Models.Modul", b =>
+            modelBuilder.Entity("WebServer.Models.Module", b =>
                 {
                     b.HasOne("WebServer.Models.User", "Author")
                         .WithMany("Moduls")

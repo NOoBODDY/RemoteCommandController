@@ -4,30 +4,38 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using WebServer.Models;
+using WebServer.Repositories;
+using WebServer.Services;
 
 namespace WebServer.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        DataBaseContext _dbContext;
+        private readonly IUserService _userService;
+        private readonly IUserParamsForRemoteService _userParamsForRemoteService;
+        private readonly IRemoteComputerService _remoteComputerService;
 
-        public HomeController(ILogger<HomeController> logger, DataBaseContext context)
+        public HomeController(ILogger<HomeController> logger, IUserService userService,
+            IUserParamsForRemoteService userParamsForRemoteService, IRemoteComputerService remoteComputerService)
         {
             _logger = logger;
-            _dbContext = context;
+            _userService = userService;
+            _userParamsForRemoteService = userParamsForRemoteService;
+            _remoteComputerService = remoteComputerService;
         }
+
         [Authorize(Roles="admin")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             string userName = User.FindFirst(x => x.Type == ClaimsIdentity.DefaultRoleClaimType).Subject.Name;
-            User curentUser = _dbContext.Users.FirstOrDefault(u => u.Name == userName);
-            List<UserParamsForRemote> parameters = _dbContext.UsersParamsForRemote.Where(u => u.UserId == curentUser.Id).ToList();
+            User curentUser = await _userService.GetUserByName(userName);
+            var parameters = await _userParamsForRemoteService.GetParamsByUserId(curentUser.Id);
             List<ComputerViewModel> computers = new List<ComputerViewModel>();
-            foreach (UserParamsForRemote param in parameters)
+            foreach (UserParamsForRemote? param in parameters)
             {
                 ComputerViewModel computer = new ComputerViewModel();
-                RemoteComputer remote = _dbContext.RemoteComputers.FirstOrDefault(u => u.Id == param.RemoteComputerId);
+                RemoteComputer remote = await _remoteComputerService.GetComputerById(param.RemoteComputerId);
                 if (remote != null)
                 {
                     computer.Id = param.RemoteComputerId;
